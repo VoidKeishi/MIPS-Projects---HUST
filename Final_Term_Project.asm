@@ -3,7 +3,7 @@
     #Storing input string
     input: .space 100
     #Prompt
-    prompt: .asciiz "Enter a string: "
+    prompt: .asciiz "Enter a string(type 'stop' to exit): "
     error_message: .asciiz "Error: The length of input string must be a multiple of 8\nPlease enter a new string: "
     valid: .asciiz "Valid input string\n"
     #Output
@@ -15,6 +15,7 @@
     xor_part2: .space 3
     xor_part3: .space 3
     xor_part4: .space 3
+    stop: .asciiz "stop\n"
     comma: .asciiz ","
     frame_first_part_data: .asciiz "|     "
     frame_second_part_data: .asciiz "     |"
@@ -31,6 +32,28 @@ read:
     la $a0, input
     li $a1, 100
     syscall
+check_if_repeat:
+    #Load addresses of strings into registers
+    la $t0, input
+    la $t1, stop
+    #Compare strings
+    loop:
+        # Load a character from user input stop 
+        lb $t2, ($t0)
+        # Load a character from stored string "stop"
+        lb $t3, ($t1)
+        # Compare characters, if not equal, jump to continue
+        bne $t2, $t3, init_count
+        # Characters are equal, check if the end of strings is reached. If reached end, jump to exit
+        beqz $t2, check_end
+        # Increment input pointer
+        addi $t0, $t0, 1
+        # Increment "stop" string pointer
+        addi $t1, $t1, 1        
+        j loop
+    check_end:
+    	beqz $t3, exit
+
 init_count:
     la $s0, input
     li $s1, 0
@@ -78,7 +101,7 @@ working_with_input_xor:
     lw $t1, 0($t9)
     lw $t2, 4($t9)
     and $s1, $t1, 0xFF
-    beq $s1, '\n', exit
+    beq $s1, '\n', reset
     
     lb $t3, 0($t9)
     addi $t9, $t9, 1
@@ -131,7 +154,37 @@ if_t8_equal_1:
     addi	$t8, $t8, 2			# $t8 = $t8 + 2
     j working_with_input_xor
 
-
+reset:
+    #Erase data in all string
+    la $s0, input
+    jal erase_data
+    nop
+    la $s0, first_half
+    jal erase_data
+    nop
+    la $s0, second_half
+    jal erase_data
+    nop
+    la $s0, xor_part1
+    jal erase_data
+    nop
+    la $s0, xor_part2
+    jal erase_data
+    nop
+    la $s0, xor_part3
+    jal erase_data
+    nop
+    la $s0, xor_part4
+    jal erase_data
+    nop
+    j prompt_to_enter
+    erase_data:
+        li $t0, 0
+        sb $t0, ($s0)
+        addi $s0, $s0, 1
+        lb $t0, ($s0)
+        bne $t0, $zero, erase_data
+        jr $ra
 exit:
     li $v0, 10
     syscall
