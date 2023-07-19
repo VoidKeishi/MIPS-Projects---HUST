@@ -117,6 +117,17 @@ check_t8_value:
 
 ###################################################################################################
 if_t8_equal_3:
+    li $v0, 4
+    la $a0, frame_first_part_data
+    syscall
+
+    li $v0, 4
+    li $a0, 
+    syscall
+
+    li $v0, 4
+    la $a0, frame_second_part_data
+    syscall
 
     subi	$t8, $t8, 1			# $t8 = $t8 - 1
     j working_with_input_xor
